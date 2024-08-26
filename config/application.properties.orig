@@ -1,0 +1,8 @@
+spring.application.name=moderizing-brownfield-apps
+# spring.config.additional-location=classpath:vault-secrets.properties
+# spring.config.import=optional:classpath:vault-secrets.properties
+spring.thymeleaf.cache=false
+management.endpoints.web.exposure.include=*
+app.counter=5
+app.apiKey=some-api-key-new
+app.secretData=some-very-secret-data
