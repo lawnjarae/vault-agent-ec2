@@ -1,4 +1,0 @@
-{{ with secret "secret/data/brownfield-app-secrets" }}
-app.apiKey={{ .Data.data.api_key }}
-app.secretData={{ .Data.data.secret_data }}
-{{ end }}

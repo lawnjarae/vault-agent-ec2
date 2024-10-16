@@ -24,3 +24,8 @@ Will need a CONFIG_HOME env var set so that we can read the external application
 spring.config.import=file:${CONFIG_HOME:/vault/secrets}/database.properties
 
 java -jar moderizing-brownfield-apps-0.0.1-SNAPSHOT.jar --spring.config.location=${CONFIG_HOME}/application.properties --server.port=8080
+
+
+export CONFIG_HOME=$CONFIG_HOME
+export VAULT_ADDR=$VAULT_ADDR
+export VAULT_NAMESPACE=$VAULT_NAMESPACE

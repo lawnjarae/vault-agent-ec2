@@ -75,3 +75,5 @@ build
 .settings
 *.txt
 *.bak
+
+old_stuff/
