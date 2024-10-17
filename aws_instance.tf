@@ -27,11 +27,14 @@ resource "aws_instance" "instance" {
 }
 
 resource "null_resource" "configure_and_run_demo" {
-  depends_on = [aws_eip_association.ip_assoc]
+  depends_on = [
+    aws_rds_cluster_instance.db,
+    aws_eip_association.ip_assoc
+  ]
 
-  triggers = {
-    build_number = timestamp()
-  }
+  # triggers = {
+  #   build_number = timestamp()
+  # }
 
   provisioner "file" {
     source      = "apps/"

@@ -17,7 +17,7 @@ APP1_PID=$!
 java -jar moderizing-brownfield-apps-0.0.1-SNAPSHOT.jar --server.port=8084 &
 APP2_PID=$!
 
-sleep 15
+sleep 30
 
 # # Change directory to agent as things are referenced locally in the agent config
 cd ../agent

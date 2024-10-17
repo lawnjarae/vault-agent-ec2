@@ -21,46 +21,38 @@ resource "vault_kv_secret_v2" "important_api_key" {
   })
 }
 
-# resource "vault_database_secrets_mount" "postgres" {
-#   path        = "postgres"
-#   description = "PostgreSQL secrets engine"
+resource "vault_database_secrets_mount" "postgres" {
+  depends_on = [
+    aws_rds_cluster_instance.db
+  ]
+  namespace   = vault_namespace.demo_namespace.path_fq
+  path        = "postgres"
+  description = "PostgreSQL secrets engine"
 
-#   postgresql {
-#     name           = "db2"
-#     username       = "postgres"
-#     password       = "postgrespassword"
-#     connection_url = "postgresql://{{username}}:{{password}}@127.0.0.1:5432/postgres?sslmode=disable"
-#     verify_connection = true
-#     allowed_roles = [
-#       "dev1",
-#     ]
-#   }
-# }
+  postgresql {
+    name              = local.database_name
+    username          = "demo_user"
+    password          = random_string.db_password.result
+    connection_url    = "postgresql://{{username}}:{{password}}@${aws_rds_cluster.db.endpoint}:${aws_rds_cluster.db.port}/${local.database_name}"
+    verify_connection = true
+    allowed_roles = [
+      "dev1",
+    ]
+  }
+}
 
-# resource "vault_database_secret_backend_role" "dev1" {
-#   name    = "dev1"
-#   backend = vault_database_secrets_mount.postgres.path
-#   db_name = vault_database_secrets_mount.postgres.postgresql[0].name
-#   creation_statements = [
-#     "CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
-#     "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
-#   ]
-#   default_ttl = 60
-#   max_ttl = 60
-# }
-
-
-# # resource "vault_database_secret_backend_role" "your_postgres_role" {
-# #   backend = vault_mount.postgres.path
-# #   name    = "your-postgres-role"
-# #   db_name = vault_database_secret_backend_connection.postgres.name
-# #   creation_statements = [
-# #     "CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';",
-# #     "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";"
-# #   ]
-# #   default_ttl = "1m"
-# #   max_ttl     = "24h"
-# # }
+resource "vault_database_secret_backend_role" "dev1" {
+  namespace = vault_namespace.demo_namespace.path_fq
+  name      = "dev1"
+  db_name   = local.database_name
+  backend   = vault_database_secrets_mount.postgres.path
+  creation_statements = [
+    "CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";",
+    "GRANT SELECT ON pg_stat_activity TO \"{{name}}\";",
+  ]
+  default_ttl = 30
+  max_ttl     = 60
+}
 
 resource "vault_policy" "brownfield_policy" {
   namespace = vault_namespace.demo_namespace.path_fq

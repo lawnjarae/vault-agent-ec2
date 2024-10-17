@@ -38,10 +38,10 @@ template {
   }
 }
 
-// template {
-//   source      = "./dynamic-credentials.ctmpl"
-//   destination = "../brownfield-app/config/application-dynamic.properties"
-//   exec {
-//     command = ["./handle-updates.sh"]
-//   }
-// }
+template {
+  source      = "./dynamic-credentials.ctmpl"
+  destination = "../brownfield-app/config/application-dynamic.properties"
+  exec {
+    command = ["./handle-updates.sh"]
+  }
+}
