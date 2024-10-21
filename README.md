@@ -29,3 +29,5 @@ java -jar moderizing-brownfield-apps-0.0.1-SNAPSHOT.jar --spring.config.location
 export CONFIG_HOME=$CONFIG_HOME
 export VAULT_ADDR=$VAULT_ADDR
 export VAULT_NAMESPACE=$VAULT_NAMESPACE
+
+doormat login && eval $(doormat aws export --account aws_justin.jarae_test)
