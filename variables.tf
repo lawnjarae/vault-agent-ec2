@@ -1,7 +1,3 @@
-variable "customer_name" {
-  description = "Specify the name of your customer. This helps to customize the resources created for your customer."
-}
-
 variable "region" {
   description = "The AWS region to use for this demo."
   type        = string

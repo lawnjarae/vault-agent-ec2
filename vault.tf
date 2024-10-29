@@ -69,11 +69,11 @@ path "postgres/creds/dev1" {
 EOT
 }
 
-resource "vault_auth_backend" "aws" {
-  namespace   = vault_namespace.demo_namespace.path_fq
-  type        = "aws"
-  description = "AWS Auth Method"
-}
+# resource "vault_auth_backend" "aws" {
+#   namespace   = vault_namespace.demo_namespace.path_fq
+#   type        = "aws"
+#   description = "AWS Auth Method"
+# }
 
 # Requires Vault 1.17+
 # resource "vault_aws_auth_backend_client" "example" {
