@@ -1,33 +1,65 @@
-{{ with secret "database/creds/my-role" }}
-export POSTGRES_USERNAME="{{ .Data.username }}"
-export POSTGRES_PASSWORD="{{ .Data.password }}"
-{{ end }}
+# DDR Demo: Vault - Modernizing Brownfield Applications
+
+## Demo Prerequisites
+
+1. Please ensure you followed the [DDR Demos - User Guide](https://hashicorp.atlassian.net/wiki/x/II2Pw) before starting this demo.
+   - You **MUST** have completed the [Additional Onboarding Steps](https://hashicorp.atlassian.net/wiki/spaces/VE/pages/3230633248/DDR+Demos+-+User+Guide#STEP-3%3A-Run-Additional-Onboarding-Steps) section of the User Guide to use this demo.
+
+## Demo Provision Time
+
+This demo should take about **15-20 minutes** to provision.
+
+## The Pain
+TODO: The problem of using modern software, platforms, and processes that coexist with legacy systems. In this demo we will be demonstrating Vault's capability to manage secrets in Brownfield environments.
+
+## The Solution
+HashiCorp Vault's approach to secrets management not only addresses the challenges presented by modern applications, but legacy applications as well. HashiCorp Vault offers a number of authentication methods, secrets engines, and client side patterns to address challenges of secrets lifecycle management with legacy systems.
 
 
+## Additional Content
+- [Vault Agent](https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent)
+- [Auto-Auth](https://developer.hashicorp.com/vault/docs/agent-and-proxy/autoauth)
+- [AppRole](https://developer.hashicorp.com/vault/docs/auth/approle)
+- [Database Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/databases)
+- [KV Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/kv/kv-v2)
+- [Vault Agent](https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent)
 
-https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent/template#global-configurations
-lease_renewal_threshold
-
-Can't tell if static_secret_render_interval actually renders the template again or not
-
-
-Paths in vault agent config are going to be relative to where the agent is run from.
-vault agent -config vault-agent-config.hcl should be run from the agent folder.
-
-
-docker run --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgrespassword -d postgres
-docker run --name minio -p 9000:9000 -p 9001:9001 -d minio/minio -v minio_data:/Users/jjarae/source/terraform/minio-data server /data --console-address ":9001"
-
-vault write auth/brownfield/login role_id="6985732f-86a9-04c8-3cae-2fc270e1f838" secret_id="6cdc7e0a-ec9c-07dc-9773-fd4f91a286d4"
-
-Will need a CONFIG_HOME env var set so that we can read the external application.properties file.
-spring.config.import=file:${CONFIG_HOME:/vault/secrets}/database.properties
-
-java -jar moderizing-brownfield-apps-0.0.1-SNAPSHOT.jar --spring.config.location=${CONFIG_HOME}/application.properties --server.port=8080
+## Architecture
 
 
-export CONFIG_HOME=$CONFIG_HOME
-export VAULT_ADDR=$VAULT_ADDR
-export VAULT_NAMESPACE=$VAULT_NAMESPACE
+## Preparing the Demo
 
-doormat login && eval $(doormat aws export --account aws_justin.jarae_test)
+1. Take a look at the additional content and agent breakdown ahead of the demo, or reference them to answer questions the prospect may have in regards to the Vault configuration.
+2. Run the no code module 10 minutes ahead of the scheduled meeting. This demo environment requires a virtual machine to be spun up along with some configuration scripts that will execute at runtime.
+3. Make sure to have you have onboarded your DDR HCP Terraform project and have it using doormat credentials.
+
+# Breakdown of the Vault Agent Configuration
+
+- Take a look at the agent configuration. Typically one of the first configuration options you will see in the Vault Agent is "Auto Auth" where we will define our authentication method, and also configure 
+where our Vault token will be stored. In this specific demo we use "Approle", which is a very common authentication method we see used with legacy applications. Take some time here to cover what authentication 
+methods are and a few examples.
+
+- The next configuration option you will typically see is how we define a template. Templates will typically be a separate configuration file where we define the secret backend we will
+be using, file rendering, and configuration options for that secret. We will have two templates used in this agent configuration, one will be for the static secret (kv2) and one will be for the postgres username/password. 
+We have a good amount of Vault Agent Template examples in our documentation if the customer would like to see an example of templating for a secret engine not used in this demo.
+
+- And the last configuration option we use in this demo is the optional "exec". This allows Vault agent to run a child process to run commands, execute scripts, or inject secrets as environment
+variables. "exec" is a very useful feature especially in legacy environments where you may need some custom actions to properly consume a secret.
+
+## Talk Track
+
+1. Take a look at the additional content and agent breakdown ahead of the demo, or reference them to answer questions the prospect may have in regards to the Vault configuration.
+2. Run the no code module 10 minutes ahead of the scheduled meeting. This demo environment requires a virtual machine to be spun up along with some configuration scripts that will execute at runtime.
+3. After the environment is ready, review the resources involved in this demo with the prospect:
+- HCP Vault Dedicated Cluster
+- AWS Virtual Machine
+- AWS RDS (Database)
+-Resources to support this infrastructure (Availability Zone, Security Groups, Network etc.)
+4. Review the Vault configuration with the prospect:
+- Namespace (Named your DDR SLUG)
+- Review the KV2 secret "important API key"
+- Review the Database Secrets Engine (Postgres) configured to rotate credentials on the AWS RDS instance. Explain that DB Secrets Engine will use a privileged root credential to manage the accounts
+  created on the database. Explain that Vault will also be rotating this root credential so only Vault will will have it.
+- Mention that the client will be authenticating with Approle. Note the necessary policy that gives access to these configured resources.
+5. Jump on to the virtual machine running our brownfield application, and also open the repo containing this workshops Terraform configuration. In the repo you will see a directly called "agent" and go over the "Breakdown of the Vault Agent Configuration".
+6. Show the Vault Service running and the brownfield application consuming the secrets being retrieved by Vault. They will be stored in /brownfield-app/config/application-static and application-dynamic.

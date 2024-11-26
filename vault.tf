@@ -54,6 +54,9 @@ resource "vault_database_secret_backend_role" "dev1" {
   max_ttl     = 60
 }
 
+# Create a policy that we'll map to the brownfield AppRole. This policy allows for the reading of static secrets
+# at secret/brownfield-app-secrets and also to create dynamic credentials for postgres that's configured
+# on the postgres mount.
 resource "vault_policy" "brownfield_policy" {
   namespace = vault_namespace.demo_namespace.path_fq
   name      = "brownfield"
@@ -94,12 +97,15 @@ EOT
 #   token_max_ttl            = "120"
 # }
 
+# Create the AppRole auth mount on the path "brownfield"
 resource "vault_auth_backend" "brownfield-approle" {
   namespace = vault_namespace.demo_namespace.path_fq
   type      = "approle"
   path      = "brownfield"
 }
 
+# Create the AppRole role and map our policy to it. This AppRole will not expire and
+# has unlimited number of uses.
 resource "vault_approle_auth_backend_role" "brownfield_role" {
   namespace          = vault_namespace.demo_namespace.path_fq
   backend            = vault_auth_backend.brownfield-approle.path
@@ -112,7 +118,7 @@ resource "vault_approle_auth_backend_role" "brownfield_role" {
   secret_id_ttl      = 0
 }
 
-# The secret id and role id files and all of this aren't needed as the agent script will take care of it.
+# Create a secret id for the previously created role. 
 resource "vault_approle_auth_backend_role_secret_id" "brownfield_secret_id" {
   namespace = vault_namespace.demo_namespace.path_fq
   backend   = vault_auth_backend.brownfield-approle.path
