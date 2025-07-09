@@ -9,7 +9,7 @@ locals {
   resources_prefix   = "${local.customer_name}-${local.global_id}"
   vpc_cidr           = "10.0.0.0/16"
   azs                = slice(data.aws_availability_zones.available.names, 0, 3)
-  database_name      = "demodb${random_string.database_identifier.result}"
+  # database_name      = "demodb${random_string.database_identifier.result}"
 }
 
 data "aws_availability_zones" "available" {
@@ -19,12 +19,12 @@ data "aws_availability_zones" "available" {
   }
 }
 
-resource "random_string" "database_identifier" {
-  length  = 4
-  special = false
-  numeric = false
-  upper   = false
-}
+# resource "random_string" "database_identifier" {
+#   length  = 4
+#   special = false
+#   numeric = false
+#   upper   = false
+# }
 
 resource "random_string" "identifier" {
   length  = 4

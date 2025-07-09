@@ -1,5 +1,5 @@
 output "vault_cluster_url" {
-  value       = var.ddr_vault_public_endpoint
+  value       = var.vault_public_endpoint
   description = "Use this URL Log into the Vault UI and explore the database configurations."
 }
 

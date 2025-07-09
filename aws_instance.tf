@@ -14,9 +14,32 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
+# Get the required info from Vault
+data "vault_namespace" "namespace" {
+  path = "brownfield_app"
+}
+
+data "vault_auth_backend" "brownfield_approle" {
+  namespace = data.vault_namespace.namespace.path_fq
+  path      = "brownfield"
+}
+
+data "vault_approle_auth_backend_role_id" "brownfield_role_id" {
+  namespace = data.vault_namespace.namespace.path_fq
+  backend   = data.vault_auth_backend.brownfield_approle.path
+  role_name = "brownfield-role"
+}
+
+resource "vault_approle_auth_backend_role_secret_id" "brownfield_secret_id" {
+  namespace = data.vault_namespace.namespace.path_fq
+  backend   = data.vault_auth_backend.brownfield_approle.path
+  role_name = "brownfield-role"
+}
+# End Vault
+
 resource "aws_instance" "instance" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.small"
+  instance_type               = "t3.micro"
   key_name                    = aws_key_pair.key_pair.key_name
   associate_public_ip_address = true
   subnet_id                   = module.vpc.public_subnets[0]
@@ -28,7 +51,6 @@ resource "aws_instance" "instance" {
 
 resource "null_resource" "configure_and_run_demo" {
   depends_on = [
-    aws_rds_cluster_instance.db,
     aws_eip_association.ip_assoc
   ]
 
@@ -51,13 +73,14 @@ resource "null_resource" "configure_and_run_demo" {
   provisioner "remote-exec" {
     inline = [
       "echo CONFIG_HOME=/home/ubuntu/brownfield-app/config | sudo tee -a /etc/profile",
-      "echo VAULT_ADDR=${var.ddr_vault_public_endpoint} | sudo tee -a /etc/profile",
-      "echo VAULT_NAMESPACE=admin/${vault_namespace.demo_namespace.path_fq} | sudo tee -a /etc/profile",
+      "echo VAULT_ADDR=${var.vault_public_endpoint} | sudo tee -a /etc/profile",
+      "echo VAULT_NAMESPACE=admin/${data.vault_namespace.namespace.path_fq} | sudo tee -a /etc/profile",
       "cd /home/ubuntu/agent",
       "chmod +x handle-updates.sh",
-      "echo ${vault_approle_auth_backend_role.brownfield_role.role_id} > role-id.txt",
+      "echo ${data.vault_approle_auth_backend_role_id.brownfield_role_id.role_id} > role-id.txt",
       "echo ${vault_approle_auth_backend_role_secret_id.brownfield_secret_id.secret_id} > secret-id.txt",
       "echo ${vault_approle_auth_backend_role_secret_id.brownfield_secret_id.secret_id} > secret-id.txt.bak",
+      "sudo apt update",
       "cd /home/ubuntu/startup-scripts",
       "chmod +x install.sh",
       "sudo ./install.sh",
@@ -85,3 +108,10 @@ resource "aws_key_pair" "key_pair" {
   key_name   = local.private_key_filename
   public_key = tls_private_key.key.public_key_openssh
 }
+
+
+# Create a secret id for the previously created role. 
+# resource "vault_approle_auth_backend_role_secret_id" "brownfield_secret_id" {
+#   namespace = vault_namespace.demo_namespace.path_fq
+#   backend   = vault_auth_backend.brownfield-approle.path
+#   role_name = vault_approle_auth_backend_role.brownfield_role.role_name
