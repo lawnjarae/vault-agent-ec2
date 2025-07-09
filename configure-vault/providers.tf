@@ -1,7 +1,3 @@
 provider "vault" {
   namespace = "admin/brownfield_app"
 }
-
-provider "aws" {
-  region = var.region
-}
