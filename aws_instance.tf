@@ -15,23 +15,16 @@ data "aws_ami" "vault_agent" {
 }
 
 # Get the required info from Vault
-data "vault_namespace" "namespace" {
-  path = "brownfield_app"
-}
-
 data "vault_auth_backend" "brownfield_approle" {
-  namespace = data.vault_namespace.namespace.path_fq
   path      = "brownfield"
 }
 
 data "vault_approle_auth_backend_role_id" "brownfield_role_id" {
-  namespace = data.vault_namespace.namespace.path_fq
   backend   = data.vault_auth_backend.brownfield_approle.path
   role_name = "brownfield-role"
 }
 
 resource "vault_approle_auth_backend_role_secret_id" "brownfield_secret_id" {
-  namespace = data.vault_namespace.namespace.path_fq
   backend   = data.vault_auth_backend.brownfield_approle.path
   role_name = "brownfield-role"
 }
@@ -74,7 +67,7 @@ resource "null_resource" "configure_and_run_demo" {
     inline = [
       "echo CONFIG_HOME=/home/ubuntu/brownfield-app/config | sudo tee -a /etc/profile",
       "echo VAULT_ADDR=${var.vault_public_endpoint} | sudo tee -a /etc/profile",
-      "echo VAULT_NAMESPACE=admin/${data.vault_namespace.namespace.path_fq} | sudo tee -a /etc/profile",
+      "echo VAULT_NAMESPACE=admin/brownfield_app | sudo tee -a /etc/profile",
       "cd /home/ubuntu/agent",
       "chmod +x handle-updates.sh",
       "echo ${data.vault_approle_auth_backend_role_id.brownfield_role_id.role_id} > role-id.txt",
