@@ -27,3 +27,8 @@ variable "sg_ingress_ports" {
   description = "List of allowed ingress ports to access the public-facing instance"
   default     = ["22", "80", "443", "8080", "8084"]
 }
+
+variable "vault_public_endpoint" {
+  type    = string
+  default = ""
+}

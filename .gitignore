@@ -77,3 +77,4 @@ build
 *.bak
 
 old_stuff/
+testing/
