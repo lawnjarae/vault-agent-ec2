@@ -54,6 +54,36 @@ resource "vault_kv_secret_v2" "important_api_key" {
 #   max_ttl     = 60
 # }
 
+resource "vault_jwt_auth_backend" "jwt_config" {
+  namespace = vault_namespace.demo_namespace.path_fq
+  oidc_discovery_url = "https://app.terraform.io"
+  bound_issuer       = "https://app.terraform.io"
+}
+
+resource "vault_policy" "tfc_policy" {
+  namespace = vault_namespace.demo_namespace.path_fq
+  name   = "tfc-policy"
+  policy = file("${path.module}/tfc-policy.hcl")
+}
+
+resource "vault_jwt_auth_backend_role" "tfc_role" {
+  namespace = vault_namespace.demo_namespace.path_fq
+  backend           = vault_jwt_auth_backend.jwt_config.path
+  role_name         = "tfc-role"
+  role_type         = "jwt"
+  user_claim        = "terraform_full_workspace"
+  bound_audiences   = ["vault.workload.identity"]
+  bound_claims_type = "glob"
+
+  bound_claims = {
+    sub = "organization:carson:project:MCBC:workspace:*:run_phase:*"
+  }
+
+  token_policies   = [vault_policy.tfc_policy.name]
+  token_ttl  = "1200"
+}
+
+
 # Create a policy that we'll map to the brownfield AppRole. This policy allows for the reading of static secrets
 # at secret/brownfield-app-secrets and also to create dynamic credentials for postgres that's configured
 # on the postgres mount.

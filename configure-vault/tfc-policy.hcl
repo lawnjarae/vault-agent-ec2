@@ -13,6 +13,35 @@ path "auth/token/revoke-self" {
     capabilities = ["update"]
 }
 
+path "auth/token/create" {  
+  capabilities = ["create", "update"]  
+}
+
+
+########## Permissions to handle all Approle related operations
+path "sys/mounts/auth/brownfield" {
+  capabilities = ["read"]
+}
+
+path "auth/brownfield/role/*" {
+  capabilities = ["read", "list"]
+}
+
+# Grant permissions for creating SecretIDs for the specific role
+path "auth/brownfield/role/brownfield-role/secret-id" {
+  capabilities = ["create", "update"]
+}
+
+# To read SecretID accessors:
+path "auth/brownfield/role/brownfield-role/secret-id-accessor" {
+  capabilities = ["read", "list"]
+}
+
+# Allow lookup of SecretID accessors
+path "auth/brownfield/role/brownfield-role/secret-id-accessor/*" {
+  capabilities = ["read", "list", "update", "delete"]
+}
+
 # Configure the actual secrets the token should have access to
 path "secret/*" {
   capabilities = ["read"]
