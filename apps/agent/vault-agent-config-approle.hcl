@@ -1,12 +1,12 @@
 pid_file = "/tmp/vault-agent-pid"
 
 vault {
-  address = "$VAULT_ADDR"
+  address = "https://vault-cluster-public-vault-5440cd29.f3de9287.z1.hashicorp.cloud:8200"
 }
 
 auto_auth {
   method "approle" {
-    namespace = "$VAULT_NAMESPACE"
+    namespace = "admin/brownfield_app"
     mount_path = "auth/brownfield"
     config = {
       role_id_file_path = "./role-id.txt"
