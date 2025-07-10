@@ -2,13 +2,9 @@
 
 ## Demo Prerequisites
 
-1. Please ensure you followed the [DDR Demos - User Guide](https://hashicorp.atlassian.net/wiki/x/II2Pw) before starting this demo.
-   - You **MUST** have completed the [Additional Onboarding Steps](https://hashicorp.atlassian.net/wiki/spaces/VE/pages/3230633248/DDR+Demos+-+User+Guide#STEP-3%3A-Run-Additional-Onboarding-Steps) section of the User Guide to use this demo.
-2. You will also need the [Vault Agent configuration](https://github.com/lawnjarae/modernizing-brownfield-applications/blob/main/apps/agent/vault-agent-config-approle.hcl) available as this will be covered in the talk track.
-
 ## Demo Provision Time
 
-This demo should take about **15-20 minutes** to provision.
+This demo should take about **5 minutes** to provision.
 
 ## Field Resources
 
