@@ -45,3 +45,18 @@ template {
 #     command = ["./handle-updates.sh"]
 #   }
 # }
+
+template {
+  source      = "./pki-cert.ctmpl"
+  destination =  "/home/ubuntu/agent/renewed/cert.pem"
+}
+
+template {
+  source      = "./pki-key.ctmpl"
+  destination =  "/home/ubuntu/agent/renewed/key.pem"
+}
+
+template {
+  source      = "./pki-ca.ctmpl"
+  destination =  "/home/ubuntu/agent/renewed/ca.pem"
+}

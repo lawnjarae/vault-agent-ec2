@@ -1,5 +1,4 @@
 resource "vault_namespace" "demo_namespace" {
-  # namespace = var.ddr_user_slug
   path      = "brownfield_app"
 }
 
@@ -79,7 +78,7 @@ resource "vault_jwt_auth_backend_role" "tfc_role" {
     sub = "organization:carson:project:MCBC:workspace:*:run_phase:*"
   }
 
-  token_policies   = [vault_policy.tfc_policy.name]
+  token_policies   = [vault_policy.tfc_policy.name, vault_policy.engine-policy.name]
   token_ttl  = "1200"
 }
 
@@ -131,7 +130,7 @@ resource "vault_approle_auth_backend_role" "brownfield_role" {
   namespace          = vault_namespace.demo_namespace.path_fq
   backend            = vault_auth_backend.brownfield-approle.path
   role_name          = "brownfield-role"
-  token_policies     = ["default", vault_policy.brownfield_policy.name]
+  token_policies     = ["default", vault_policy.brownfield_policy.name, vault_policy.engine-policy.name]
   token_ttl          = "3600"
   token_max_ttl      = "43200"
   token_num_uses     = 0

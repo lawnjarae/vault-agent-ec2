@@ -76,5 +76,9 @@ build
 *.txt
 *.bak
 
+*.pem
+*.csr
+*.crt
+
 old_stuff/
 testing/

@@ -28,6 +28,14 @@ resource "vault_approle_auth_backend_role_secret_id" "brownfield_secret_id" {
   backend   = data.vault_auth_backend.brownfield_approle.path
   role_name = "brownfield-role"
 }
+
+resource "vault_pki_secret_backend_cert" "cert" {
+  backend     = "pki_int"
+  name        = "example-dot-com"
+  common_name = "test.example.com"
+  ttl         = "3m"
+}
+
 # End Vault
 
 resource "aws_instance" "instance" {
@@ -51,17 +59,17 @@ resource "null_resource" "configure_and_run_demo" {
   #   build_number = timestamp()
   # }
 
-  # provisioner "file" {
-  #   source      = "apps/agent"
-  #   destination = "/home/ubuntu/"
+  provisioner "file" {
+    source      = "apps/agent"
+    destination = "/home/ubuntu/"
 
-  #   connection {
-  #     type        = "ssh"
-  #     user        = "ubuntu"
-  #     private_key = tls_private_key.key.private_key_pem
-  #     host        = aws_eip.public_ip.public_ip
-  #   }
-  # }
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = tls_private_key.key.private_key_pem
+      host        = aws_eip.public_ip.public_ip
+    }
+  }
 
   provisioner "remote-exec" {
     inline = [
@@ -73,6 +81,10 @@ resource "null_resource" "configure_and_run_demo" {
       "echo ${data.vault_approle_auth_backend_role_id.brownfield_role_id.role_id} > role-id.txt",
       "echo ${vault_approle_auth_backend_role_secret_id.brownfield_secret_id.secret_id} > secret-id.txt",
       "echo ${vault_approle_auth_backend_role_secret_id.brownfield_secret_id.secret_id} > secret-id.txt.bak",
+
+      "echo '${base64encode(vault_pki_secret_backend_cert.cert.certificate)}' | base64 -d > cert.pem",
+      "echo '${base64encode(vault_pki_secret_backend_cert.cert.private_key)}' | base64 -d > key.pem",
+      "echo '${base64encode(vault_pki_secret_backend_cert.cert.issuing_ca)}' | base64 -d > ca.pem",
       "sudo systemctl start brownfield-app"
     ]
 
