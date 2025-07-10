@@ -1,6 +1,6 @@
 resource "vault_policy" "engine-policy" {
   namespace = vault_namespace.demo_namespace.path_fq
-  name = "engine-policy"
+  name      = "engine-policy"
 
   policy = <<EOT
 # Enable secrets engine

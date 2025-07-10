@@ -1,5 +1,5 @@
 resource "vault_namespace" "demo_namespace" {
-  path      = "brownfield_app"
+  path = "brownfield_app"
 }
 
 resource "vault_mount" "kvv2" {
@@ -54,19 +54,19 @@ resource "vault_kv_secret_v2" "important_api_key" {
 # }
 
 resource "vault_jwt_auth_backend" "jwt_config" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace          = vault_namespace.demo_namespace.path_fq
   oidc_discovery_url = "https://app.terraform.io"
   bound_issuer       = "https://app.terraform.io"
 }
 
 resource "vault_policy" "tfc_policy" {
   namespace = vault_namespace.demo_namespace.path_fq
-  name   = "tfc-policy"
-  policy = file("${path.module}/tfc-policy.hcl")
+  name      = "tfc-policy"
+  policy    = file("${path.module}/tfc-policy.hcl")
 }
 
 resource "vault_jwt_auth_backend_role" "tfc_role" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace         = vault_namespace.demo_namespace.path_fq
   backend           = vault_jwt_auth_backend.jwt_config.path
   role_name         = "tfc-role"
   role_type         = "jwt"
@@ -75,11 +75,11 @@ resource "vault_jwt_auth_backend_role" "tfc_role" {
   bound_claims_type = "glob"
 
   bound_claims = {
-    sub = "organization:carson:project:MCBC:workspace:*:run_phase:*"
+    sub = "organization:${var.tfc_org_name}:project:${var.tfc_project_name}:workspace:*:run_phase:*"
   }
 
-  token_policies   = [vault_policy.tfc_policy.name, vault_policy.engine-policy.name]
-  token_ttl  = "1200"
+  token_policies = [vault_policy.tfc_policy.name, vault_policy.engine-policy.name]
+  token_ttl      = "1200"
 }
 
 

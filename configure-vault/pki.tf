@@ -1,6 +1,6 @@
 # step 1.1 and 1.2
 resource "vault_mount" "pki" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   path        = "pki"
   type        = "pki"
   description = "This is an example PKI mount"
@@ -16,7 +16,7 @@ resource "vault_mount" "pki" {
 #   ttl=87600h > root_2023_ca.crt
 
 resource "vault_pki_secret_backend_root_cert" "root_2023" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   backend     = vault_mount.pki.path
   type        = "internal"
   common_name = "example.com"
@@ -36,7 +36,7 @@ resource "local_file" "root_2023_cert" {
 # used to update name and properties
 # manages lifecycle of existing issuer
 resource "vault_pki_secret_backend_issuer" "root_2023" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace                      = vault_namespace.demo_namespace.path_fq
   backend                        = vault_mount.pki.path
   issuer_ref                     = vault_pki_secret_backend_root_cert.root_2023.issuer_id
   issuer_name                    = vault_pki_secret_backend_root_cert.root_2023.issuer_name
@@ -47,7 +47,7 @@ resource "vault_pki_secret_backend_issuer" "root_2023" {
 # vault write pki/roles/2023-servers allow_any_name=true
 
 resource "vault_pki_secret_backend_role" "role" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace        = vault_namespace.demo_namespace.path_fq
   backend          = vault_mount.pki.path
   name             = "2023-servers-role"
   allow_ip_sans    = true
@@ -59,7 +59,7 @@ resource "vault_pki_secret_backend_role" "role" {
 
 # 1.7
 resource "vault_pki_secret_backend_config_urls" "config-urls" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace               = vault_namespace.demo_namespace.path_fq
   backend                 = vault_mount.pki.path
   issuing_certificates    = ["http://localhost:8200/v1/pki/ca"]
   crl_distribution_points = ["http://localhost:8200/v1/pki/crl"]
@@ -70,7 +70,7 @@ resource "vault_pki_secret_backend_config_urls" "config-urls" {
 # vault secrets tune -max-lease-ttl=43800h pki_int
 
 resource "vault_mount" "pki_int" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   path        = "pki_int"
   type        = "pki"
   description = "This is an example intermediate PKI mount"
@@ -86,7 +86,7 @@ resource "vault_mount" "pki_int" {
 #      | jq -r '.data.csr' > pki_intermediate.csr
 
 resource "vault_pki_secret_backend_intermediate_cert_request" "csr-request" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   backend     = vault_mount.pki_int.path
   type        = "internal"
   common_name = "example.com Intermediate Authority"
@@ -105,7 +105,7 @@ resource "local_file" "csr_request_cert" {
 #      | jq -r '.data.certificate' > intermediate.cert.pem
 
 resource "vault_pki_secret_backend_root_sign_intermediate" "intermediate" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   backend     = vault_mount.pki.path
   common_name = "new_intermediate"
   csr         = vault_pki_secret_backend_intermediate_cert_request.csr-request.csr
@@ -123,14 +123,14 @@ resource "local_file" "intermediate_ca_cert" {
 # vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
 
 resource "vault_pki_secret_backend_intermediate_set_signed" "intermediate" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   backend     = vault_mount.pki_int.path
   certificate = vault_pki_secret_backend_root_sign_intermediate.intermediate.certificate
 }
 
 # manage the issuer created for the set signed
 resource "vault_pki_secret_backend_issuer" "intermediate" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   backend     = vault_mount.pki_int.path
   issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.intermediate.imported_issuers[0]
   issuer_name = "example-dot-com-intermediate"
@@ -146,7 +146,7 @@ resource "vault_pki_secret_backend_issuer" "intermediate" {
 #      max_ttl="720h"
 
 resource "vault_pki_secret_backend_role" "intermediate_role" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace        = vault_namespace.demo_namespace.path_fq
   backend          = vault_mount.pki_int.path
   issuer_ref       = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   name             = "example-dot-com"
@@ -164,13 +164,13 @@ resource "vault_pki_secret_backend_role" "intermediate_role" {
 #  vault write pki_int/issue/example-dot-com common_name="test.example.com" ttl="24h"
 
 resource "vault_pki_secret_backend_cert" "example-dot-com" {
-  namespace = vault_namespace.demo_namespace.path_fq
+  namespace   = vault_namespace.demo_namespace.path_fq
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
   common_name = "test.example.com"
   ttl         = 3600
-  revoke     = true
+  revoke      = true
 }
 
 output "vault_pki_secret_backend_cert_example-dot-com_cert" {
@@ -183,7 +183,7 @@ output "vault_pki_secret_backend_cert_example-dot-com_issuring_ca" {
 
 output "vault_pki_secret_backend_cert_example-dot-com_serial_number" {
   value = vault_pki_secret_backend_cert.example-dot-com.serial_number
-#   sensitive = true
+  #   sensitive = true
 }
 
 output "vault_pki_secret_backend_cert_example-dot-com_private_key_type" {
