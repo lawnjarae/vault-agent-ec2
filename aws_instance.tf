@@ -16,7 +16,7 @@ data "aws_ami" "vault_agent" {
 
 # Get the required info from Vault
 data "vault_auth_backend" "brownfield_approle" {
-  path      = "brownfield"
+  path = "brownfield"
 }
 
 data "vault_approle_auth_backend_role_id" "brownfield_role_id" {

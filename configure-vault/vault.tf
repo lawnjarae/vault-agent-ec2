@@ -1,5 +1,5 @@
 resource "vault_namespace" "demo_namespace" {
-  path = "brownfield_app"
+  path = "ibm_mq"
 }
 
 resource "vault_mount" "kvv2" {
@@ -17,6 +17,16 @@ resource "vault_kv_secret_v2" "important_api_key" {
   data_json = jsonencode({
     api_key     = "api-key-value"
     secret_data = "some-very-secret-data"
+  })
+}
+
+resource "vault_kv_secret_v2" "qm1_kdb_password" {
+  namespace = vault_namespace.demo_namespace.path_fq
+  mount     = vault_mount.kvv2.path
+  name      = "qmgrs/QM1"
+
+  data_json = jsonencode({
+    kdb_password     = "password-from-vault"
   })
 }
 
@@ -53,34 +63,34 @@ resource "vault_kv_secret_v2" "important_api_key" {
 #   max_ttl     = 60
 # }
 
-resource "vault_jwt_auth_backend" "jwt_config" {
-  namespace          = vault_namespace.demo_namespace.path_fq
-  oidc_discovery_url = "https://app.terraform.io"
-  bound_issuer       = "https://app.terraform.io"
-}
+# resource "vault_jwt_auth_backend" "jwt_config" {
+#   namespace          = vault_namespace.demo_namespace.path_fq
+#   oidc_discovery_url = "https://app.terraform.io"
+#   bound_issuer       = "https://app.terraform.io"
+# }
 
-resource "vault_policy" "tfc_policy" {
-  namespace = vault_namespace.demo_namespace.path_fq
-  name      = "tfc-policy"
-  policy    = file("${path.module}/tfc-policy.hcl")
-}
+# resource "vault_policy" "tfc_policy" {
+#   namespace = vault_namespace.demo_namespace.path_fq
+#   name      = "tfc-policy"
+#   policy    = file("${path.module}/tfc-policy.hcl")
+# }
 
-resource "vault_jwt_auth_backend_role" "tfc_role" {
-  namespace         = vault_namespace.demo_namespace.path_fq
-  backend           = vault_jwt_auth_backend.jwt_config.path
-  role_name         = "tfc-role"
-  role_type         = "jwt"
-  user_claim        = "terraform_full_workspace"
-  bound_audiences   = ["vault.workload.identity"]
-  bound_claims_type = "glob"
+# resource "vault_jwt_auth_backend_role" "tfc_role" {
+#   namespace         = vault_namespace.demo_namespace.path_fq
+#   backend           = vault_jwt_auth_backend.jwt_config.path
+#   role_name         = "tfc-role"
+#   role_type         = "jwt"
+#   user_claim        = "terraform_full_workspace"
+#   bound_audiences   = ["vault.workload.identity"]
+#   bound_claims_type = "glob"
 
-  bound_claims = {
-    sub = "organization:${var.tfc_org_name}:project:${var.tfc_project_name}:workspace:*:run_phase:*"
-  }
+#   bound_claims = {
+#     sub = "organization:${var.tfc_org_name}:project:${var.tfc_project_name}:workspace:*:run_phase:*"
+#   }
 
-  token_policies = [vault_policy.tfc_policy.name, vault_policy.engine-policy.name]
-  token_ttl      = "1200"
-}
+#   token_policies = [vault_policy.tfc_policy.name, vault_policy.engine-policy.name]
+#   token_ttl      = "1200"
+# }
 
 
 # Create a policy that we'll map to the brownfield AppRole. This policy allows for the reading of static secrets
@@ -92,6 +102,10 @@ resource "vault_policy" "brownfield_policy" {
 
   policy = <<EOT
 path "secret/data/brownfield-app-secrets" {
+  capabilities = ["read"]
+}
+
+path "secret/data/qmgrs/QM1" {
   capabilities = ["read"]
 }
 
@@ -139,12 +153,21 @@ resource "vault_approle_auth_backend_role" "brownfield_role" {
 }
 
 # Create a secret id for the previously created role. 
-# resource "vault_approle_auth_backend_role_secret_id" "brownfield_secret_id" {
-#   namespace = vault_namespace.demo_namespace.path_fq
-#   backend   = vault_auth_backend.brownfield-approle.path
-#   role_name = vault_approle_auth_backend_role.brownfield_role.role_name
-# }
+resource "vault_approle_auth_backend_role_secret_id" "brownfield_secret_id" {
+  namespace = vault_namespace.demo_namespace.path_fq
+  backend   = vault_auth_backend.brownfield-approle.path
+  role_name = vault_approle_auth_backend_role.brownfield_role.role_name
+}
 
+resource "local_file" "role_id_file" {
+  content  = vault_approle_auth_backend_role.brownfield_role.role_id
+  filename = "${path.module}/role-id.txt"
+}
+
+resource "local_file" "secret_id_file" {
+  content  = vault_approle_auth_backend_role_secret_id.brownfield_secret_id.secret_id
+  filename = "${path.module}/secret-id.txt"
+}
 
 
 

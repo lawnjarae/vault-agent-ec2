@@ -6,57 +6,29 @@ vault {
 
 auto_auth {
   method "approle" {
-    namespace = "admin/brownfield_app"
+    namespace = "admin/ibm_mq"
     mount_path = "auth/brownfield"
     config = {
       role_id_file_path = "./role-id.txt"
       secret_id_file_path = "./secret-id.txt"
+      remove_secret_id_file_after_reading = false
     }
   }
 
   sink "file" {
     config = {
-      path = "/home/ubuntu/vault-token-via-agent"
+      path = "/opt/vault/vault-agent/token-dir/vault-token-via-agent"
     }
   }
 }
-
-template_config {
-  static_secret_render_interval = "15s"
-}
-
 # Vault Agent cache configuration
-// cache {
-//   use_auto_auth_token = true
-// }
-
-template {
-  source      = "./static-secrets.ctmpl"
-  destination = "../brownfield-app/config/application-static.properties"
-  exec {
-    command = ["./handle-updates.sh"]
-  }
-}
-
-# template {
-#   source      = "./dynamic-credentials.ctmpl"
-#   destination = "../brownfield-app/config/application-dynamic.properties"
-#   exec {
-#     command = ["./handle-updates.sh"]
-#   }
+# cache {
+# //   use_auto_auth_token = true
 # }
 
 template {
-  source      = "./pki-cert.ctmpl"
-  destination =  "/home/ubuntu/agent/renewed/cert.pem"
-}
+  source      = "./get-certs-and-chain.ctmpl"
+  destination =  "/var/mqm/qmgrs/QM1/ssl/vault-agent-template-cache"
 
-template {
-  source      = "./pki-key.ctmpl"
-  destination =  "/home/ubuntu/agent/renewed/key.pem"
-}
-
-template {
-  source      = "./pki-ca.ctmpl"
-  destination =  "/home/ubuntu/agent/renewed/ca.pem"
+  command = "/opt/vault/vault-agent/update-one-qm.sh"
 }
