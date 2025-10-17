@@ -79,6 +79,9 @@ build
 *.pem
 *.csr
 *.crt
+*.p12
+*.jks
+*.key
 
 old_stuff/
 testing/
