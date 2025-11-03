@@ -1,7 +1,7 @@
 pid_file = "/tmp/vault-agent-pid"
 
 vault {
-  address = "https://vault-cluster-public-vault-5440cd29.f3de9287.z1.hashicorp.cloud:8200"
+  address = "$VAULT_ADDR"
 }
 
 auto_auth {
@@ -21,14 +21,11 @@ auto_auth {
     }
   }
 }
-# Vault Agent cache configuration
-# cache {
-# //   use_auto_auth_token = true
-# }
 
 template {
   source      = "./get-certs-and-chain.ctmpl"
   destination =  "/var/mqm/qmgrs/QM1/ssl/vault-agent-template-cache"
-
-  command = "/opt/vault/vault-agent/update-one-qm.sh"
+  exec {
+    command = ["/opt/vault/vault-agent/update-one-qm-clean.sh"]
+  }
 }

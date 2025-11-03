@@ -83,5 +83,9 @@ build
 *.jks
 *.key
 
+create-token
+
 old_stuff/
 testing/
+old/
+testcerts/

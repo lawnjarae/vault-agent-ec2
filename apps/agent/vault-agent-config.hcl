@@ -25,11 +25,6 @@ template_config {
   static_secret_render_interval = "15s"
 }
 
-# Vault Agent cache configuration
-// cache {
-//   use_auto_auth_token = true
-// }
-
 template {
   source      = "./static-secrets.ctmpl"
   destination = "../brownfield-app/config/application-static.properties"
